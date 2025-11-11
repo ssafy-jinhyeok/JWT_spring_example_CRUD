@@ -2,11 +2,13 @@
 -- 테스트 및 데모용 샘플 데이터
 
 -- 사용자 데이터
-INSERT INTO users (username, password, email, full_name, active) VALUES
-('john_doe', '{noop}password123', 'john@example.com', 'John Doe', true),
-('jane_smith', '{noop}password123', 'jane@example.com', 'Jane Smith', true),
-('bob_wilson', '{noop}password123', 'bob@example.com', 'Bob Wilson', true),
-('alice_brown', '{noop}password123', 'alice@example.com', 'Alice Brown', false);
+-- 비밀번호는 BCrypt로 암호화된 'password123'
+INSERT INTO users (username, password, email, full_name, active, role) VALUES
+('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'admin@example.com', 'Admin User', true, 'ROLE_ADMIN'),
+('john_doe', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'john@example.com', 'John Doe', true, 'ROLE_USER'),
+('jane_smith', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'jane@example.com', 'Jane Smith', true, 'ROLE_USER'),
+('bob_wilson', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'bob@example.com', 'Bob Wilson', true, 'ROLE_USER'),
+('alice_brown', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'alice@example.com', 'Alice Brown', false, 'ROLE_USER');
 
 -- 상품 데이터
 INSERT INTO products (name, description, price, stock_quantity, category, status) VALUES
