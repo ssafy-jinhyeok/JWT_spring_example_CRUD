@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    주문 Mapper XML
+    MyBatis 고급 매핑 기능:
+    - Association: N:1 관계 (주문 -> 사용자)
+    - Collection: 1:N 관계 (주문 -> 주문 상세 항목들)
+    - 중첩된 ResultMap
+    - 복잡한 조인 쿼리
+-->
+<mapper namespace="example.mapper.OrderMapper">
+
+    <!--
+        기본 주문 ResultMap
+        사용자 정보를 포함하지 않는 단순 매핑
+    -->
+    <resultMap id="orderResultMap" type="example.domain.Order">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="status" property="status"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="shipping_address" property="shippingAddress"/>
+        <result column="order_date" property="orderDate"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!--
+        사용자 정보를 포함한 주문 ResultMap
+        Association: N:1 관계 매핑
+        - property: Order 객체의 user 프로퍼티
+        - javaType: 매핑할 Java 타입
+        - columnPrefix: 컬럼명 앞에 붙는 접두사 (충돌 방지)
+    -->
+    <resultMap id="orderWithUserResultMap" type="example.domain.Order">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="status" property="status"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="shipping_address" property="shippingAddress"/>
+        <result column="order_date" property="orderDate"/>
+        <result column="updated_at" property="updatedAt"/>
+
+        <!-- Association: 주문과 연관된 사용자 정보 -->
+        <association property="user" javaType="example.domain.User" columnPrefix="user_">
+            <id column="id" property="id"/>
+            <result column="username" property="username"/>
+            <result column="email" property="email"/>
+            <result column="full_name" property="fullName"/>
+            <result column="active" property="active"/>
+        </association>
+    </resultMap>
+
+    <!--
+        사용자 정보 및 주문 상세 항목을 모두 포함한 주문 ResultMap
+        Association + Collection: 복합 관계 매핑
+        - Collection: 1:N 관계 매핑
+        - ofType: 컬렉션 요소의 타입
+        - select: 지연 로딩을 위한 추가 쿼리 지정 (선택사항)
+    -->
+    <resultMap id="orderDetailResultMap" type="example.domain.Order">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="status" property="status"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="shipping_address" property="shippingAddress"/>
+        <result column="order_date" property="orderDate"/>
+        <result column="updated_at" property="updatedAt"/>
+
+        <!-- Association: 사용자 정보 -->
+        <association property="user" javaType="example.domain.User" columnPrefix="user_">
+            <id column="id" property="id"/>
+            <result column="username" property="username"/>
+            <result column="email" property="email"/>
+            <result column="full_name" property="fullName"/>
+            <result column="active" property="active"/>
+        </association>
+
+        <!--
+            Collection: 주문 상세 항목들
+            중첩된 association으로 각 주문 항목의 상품 정보도 포함
+        -->
+        <collection property="orderItems" ofType="example.domain.OrderItem" columnPrefix="item_">
+            <id column="id" property="id"/>
+            <result column="order_id" property="orderId"/>
+            <result column="product_id" property="productId"/>
+            <result column="quantity" property="quantity"/>
+            <result column="price" property="price"/>
+            <result column="subtotal" property="subtotal"/>
+
+            <!-- 중첩된 Association: 주문 항목의 상품 정보 -->
+            <association property="product" javaType="example.domain.Product" columnPrefix="product_">
+                <id column="id" property="id"/>
+                <result column="name" property="name"/>
+                <result column="description" property="description"/>
+                <result column="price" property="price"/>
+                <result column="category" property="category"/>
+            </association>
+        </collection>
+    </resultMap>
+
+    <!--
+        모든 주문 조회 (사용자 정보 포함)
+        LEFT JOIN: 사용자 정보가 없어도 주문은 조회
+    -->
+    <select id="findAll" resultMap="orderWithUserResultMap">
+        SELECT
+            o.id,
+            o.user_id,
+            o.status,
+            o.total_amount,
+            o.shipping_address,
+            o.order_date,
+            o.updated_at,
+            u.id AS user_id,
+            u.username AS user_username,
+            u.email AS user_email,
+            u.full_name AS user_full_name,
+            u.active AS user_active
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        ORDER BY o.order_date DESC
+    </select>
+
+    <!--
+        ID로 주문 조회 (사용자 정보 및 주문 상세 항목 모두 포함)
+        복잡한 조인: orders -> users, orders -> order_items -> products
+    -->
+    <select id="findById" resultMap="orderDetailResultMap">
+        SELECT
+            o.id,
+            o.user_id,
+            o.status,
+            o.total_amount,
+            o.shipping_address,
+            o.order_date,
+            o.updated_at,
+            u.id AS user_id,
+            u.username AS user_username,
+            u.email AS user_email,
+            u.full_name AS user_full_name,
+            u.active AS user_active,
+            oi.id AS item_id,
+            oi.order_id AS item_order_id,
+            oi.product_id AS item_product_id,
+            oi.quantity AS item_quantity,
+            oi.price AS item_price,
+            oi.subtotal AS item_subtotal,
+            p.id AS item_product_id,
+            p.name AS item_product_name,
+            p.description AS item_product_description,
+            p.price AS item_product_price,
+            p.category AS item_product_category
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        LEFT JOIN order_items oi ON o.id = oi.order_id
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE o.id = #{id}
+    </select>
+
+    <!--
+        사용자별 주문 조회
+    -->
+    <select id="findByUserId" resultMap="orderWithUserResultMap">
+        SELECT
+            o.id,
+            o.user_id,
+            o.status,
+            o.total_amount,
+            o.shipping_address,
+            o.order_date,
+            o.updated_at,
+            u.id AS user_id,
+            u.username AS user_username,
+            u.email AS user_email,
+            u.full_name AS user_full_name,
+            u.active AS user_active
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        WHERE o.user_id = #{userId}
+        ORDER BY o.order_date DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO orders (user_id, status, total_amount, shipping_address, order_date, updated_at)
+        VALUES (#{userId}, #{status}, #{totalAmount}, #{shippingAddress},
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!--
+        복잡한 검색 조건을 사용한 주문 조회
+        <choose>: switch-case 같은 조건문
+        <when>: case
+        <otherwise>: default
+        동적 ORDER BY 절
+    -->
+    <select id="search" resultMap="orderWithUserResultMap">
+        SELECT
+            o.id,
+            o.user_id,
+            o.status,
+            o.total_amount,
+            o.shipping_address,
+            o.order_date,
+            o.updated_at,
+            u.id AS user_id,
+            u.username AS user_username,
+            u.email AS user_email,
+            u.full_name AS user_full_name,
+            u.active AS user_active
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        <where>
+            <!-- 사용자 ID로 필터링 -->
+            <if test="userId != null">
+                AND o.user_id = #{userId}
+            </if>
+
+            <!-- 주문 상태로 필터링 -->
+            <if test="status != null and status != ''">
+                AND o.status = #{status}
+            </if>
+
+            <!-- 날짜 범위로 필터링 -->
+            <if test="startDate != null">
+                AND o.order_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND o.order_date &lt;= #{endDate}
+            </if>
+
+            <!-- 금액 범위로 필터링 -->
+            <if test="minAmount != null">
+                AND o.total_amount &gt;= #{minAmount}
+            </if>
+            <if test="maxAmount != null">
+                AND o.total_amount &lt;= #{maxAmount}
+            </if>
+        </where>
+
+        <!--
+            동적 ORDER BY 절
+            <choose>를 사용한 조건부 정렬
+        -->
+        <choose>
+            <when test="sortBy == 'order_date'">
+                ORDER BY o.order_date
+            </when>
+            <when test="sortBy == 'total_amount'">
+                ORDER BY o.total_amount
+            </when>
+            <otherwise>
+                ORDER BY o.order_date DESC
+            </otherwise>
+        </choose>
+
+        <!-- 정렬 방향 -->
+        <if test="sortDirection == 'ASC'">
+            ASC
+        </if>
+        <if test="sortDirection == 'DESC' or sortDirection == null">
+            DESC
+        </if>
+    </select>
+
+</mapper>
