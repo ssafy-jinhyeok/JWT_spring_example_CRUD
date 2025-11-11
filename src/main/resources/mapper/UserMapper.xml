@@ -25,6 +25,7 @@
         <result column="email" property="email"/>
         <result column="full_name" property="fullName"/>
         <result column="active" property="active"/>
+        <result column="role" property="role"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -34,7 +35,7 @@
         resultMap 사용으로 명시적 매핑
     -->
     <select id="findAll" resultMap="userResultMap">
-        SELECT id, username, password, email, full_name, active, created_at, updated_at
+        SELECT id, username, password, email, full_name, active, role, created_at, updated_at
         FROM users
         ORDER BY created_at DESC
     </select>
@@ -44,7 +45,7 @@
         #{id}: PreparedStatement 파라미터 바인딩 (SQL Injection 방지)
     -->
     <select id="findById" resultMap="userResultMap">
-        SELECT id, username, password, email, full_name, active, created_at, updated_at
+        SELECT id, username, password, email, full_name, active, role, created_at, updated_at
         FROM users
         WHERE id = #{id}
     </select>
@@ -56,8 +57,8 @@
         keyColumn: 자동 생성되는 컬럼명
     -->
     <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-        INSERT INTO users (username, password, email, full_name, active, created_at, updated_at)
-        VALUES (#{username}, #{password}, #{email}, #{fullName}, #{active},
+        INSERT INTO users (username, password, email, full_name, active, role, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{email}, #{fullName}, #{active}, #{role},
                 CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     </insert>
 
@@ -85,6 +86,9 @@
             </if>
             <if test="active != null">
                 active = #{active},
+            </if>
+            <if test="role != null and role != ''">
+                role = #{role},
             </if>
             <!-- 항상 업데이트 시간은 갱신 -->
             updated_at = CURRENT_TIMESTAMP

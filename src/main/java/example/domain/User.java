@@ -48,6 +48,11 @@ public class User {
     private Boolean active;
 
     /**
+     * 사용자 역할 (ROLE_USER, ROLE_ADMIN 등)
+     */
+    private String role;
+
+    /**
      * 생성 일시
      * MyBatis의 map-underscore-to-camel-case 설정으로 created_at 컬럼과 자동 매핑
      */

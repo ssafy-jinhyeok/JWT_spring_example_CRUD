@@ -26,21 +26,24 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
+import example.security.CustomUserDetailsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
@@ -57,14 +60,30 @@ public class RestConfig {
 	@Value("${jwt.private.key}")
 	RSAPrivateKey priv;
 
+	private final CustomUserDetailsService customUserDetailsService;
+
+	public RestConfig(CustomUserDetailsService customUserDetailsService) {
+		this.customUserDetailsService = customUserDetailsService;
+	}
+
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		// @formatter:off
 		http
 				.authorizeHttpRequests((authorize) -> authorize
+						// 인증 없이 접근 가능한 엔드포인트
+						.requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+						.requestMatchers("/h2-console/**").permitAll()
+						.requestMatchers("/token").permitAll()
+						// 나머지는 인증 필요
 						.anyRequest().authenticated()
 				)
-				.csrf((csrf) -> csrf.ignoringRequestMatchers("/token"))
+				// CSRF 비활성화 (JWT 사용 시)
+				.csrf((csrf) -> csrf
+						.ignoringRequestMatchers("/api/**", "/token", "/h2-console/**"))
+				// H2 콘솔을 위한 프레임 옵션 설정
+				.headers((headers) -> headers
+						.frameOptions((frame) -> frame.sameOrigin()))
 				.httpBasic(Customizer.withDefaults())
 				.oauth2ResourceServer((jwt) -> jwt.jwt(Customizer.withDefaults()))
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -77,15 +96,18 @@ public class RestConfig {
 	}
 
 	@Bean
-	UserDetailsService users() {
-		// @formatter:off
-		return new InMemoryUserDetailsManager(
-			User.withUsername("user")
-				.password("{noop}password")
-				.authorities("app")
-				.build()
-		);
-		// @formatter:on
+	UserDetailsService userDetailsService() {
+		return customUserDetailsService;
+	}
+
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+		return authenticationConfiguration.getAuthenticationManager();
 	}
 
 	@Bean
