@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    주문 상세 항목 Mapper XML
+    MyBatis 고급 기능:
+    - 배치 INSERT (foreach 사용)
+    - Association을 통한 상품 정보 조인
+    - autoMapping: map-underscore-to-camel-case와 함께 자동 매핑
+-->
+<mapper namespace="example.mapper.OrderItemMapper">
+
+    <!--
+        상품 정보를 포함한 주문 상세 항목 ResultMap
+        autoMapping="true": 단순 컬럼은 자동 매핑
+    -->
+    <resultMap id="orderItemWithProductResultMap" type="OrderItem" autoMapping="true">
+        <id column="id" property="id"/>
+        <association property="product" javaType="Product" columnPrefix="product_" autoMapping="true">
+            <id column="id" property="id"/>
+        </association>
+    </resultMap>
+
+    <!--
+        주문 ID로 주문 상세 항목 조회 (상품 정보 포함)
+    -->
+    <select id="findByOrderId" resultMap="orderItemWithProductResultMap">
+        SELECT
+            oi.id,
+            oi.order_id,
+            oi.product_id,
+            oi.quantity,
+            oi.price,
+            oi.subtotal,
+            p.id AS product_id,
+            p.name AS product_name,
+            p.description AS product_description,
+            p.price AS product_price,
+            p.stock_quantity AS product_stock_quantity,
+            p.category AS product_category,
+            p.status AS product_status
+        FROM order_items oi
+        INNER JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = #{orderId}
+        ORDER BY oi.id
+    </select>
+
+    <!--
+        주문 상세 항목 생성
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO order_items (order_id, product_id, quantity, price, subtotal)
+        VALUES (#{orderId}, #{productId}, #{quantity}, #{price}, #{subtotal})
+    </insert>
+
+    <!--
+        주문 상세 항목 일괄 생성 (배치 INSERT)
+        <foreach>를 사용하여 여러 행을 한 번에 INSERT
+        - collection: 반복할 컬렉션 이름
+        - item: 반복 시 현재 항목을 참조할 변수명
+        - separator: 각 항목 사이의 구분자
+        - open/close: 전체를 감싸는 문자
+
+        배치 INSERT는 성능 향상에 매우 효과적
+        예: INSERT INTO table VALUES (1, 2), (3, 4), (5, 6)
+    -->
+    <insert id="insertBatch">
+        INSERT INTO order_items (order_id, product_id, quantity, price, subtotal)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.orderId}, #{item.productId}, #{item.quantity}, #{item.price}, #{item.subtotal})
+        </foreach>
+    </insert>
+
+</mapper>

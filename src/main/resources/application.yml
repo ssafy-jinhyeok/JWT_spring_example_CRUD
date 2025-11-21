@@ -1,0 +1,57 @@
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    example.mapper: DEBUG  # MyBatis SQL 로그
+#    org.springframework.boot.autoconfigure: DEBUG
+
+jwt:
+  private.key: classpath:app.key
+  public.key: classpath:app.pub
+
+# Spring DataSource 설정
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# MyBatis 설정
+# SpringDoc OpenAPI 설정
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: false
+
+mybatis:
+  # 타입 별칭 패키지 (resultType에서 짧은 이름 사용 가능)
+  type-aliases-package: example.domain
+  # Mapper XML 파일 위치
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    # 언더스코어를 카멜케이스로 자동 변환 (created_at -> createdAt)
+    map-underscore-to-camel-case: true
+    # 자동 매핑 동작 설정 (PARTIAL: 중첩된 결과를 제외한 자동 매핑)
+    auto-mapping-behavior: PARTIAL
+    # NULL 값이 있는 컬럼도 매핑
+    call-setters-on-nulls: true
+    # JDBC 타입을 명시하지 않아도 NULL 처리 가능
+    jdbc-type-for-null: NULL
+    # 지연 로딩 활성화
+    lazy-loading-enabled: true
+    # 프로퍼티 호출 시에만 지연 로딩 (false면 모든 지연 로딩 프로퍼티 로드)
+    aggressive-lazy-loading: false
+    # 쿼리 결과가 여러 ResultSet을 반환할 때 처리
+    multiple-result-sets-enabled: true
+    # 로그 구현체 설정
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

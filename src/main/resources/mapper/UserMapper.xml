@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+    사용자 Mapper XML
+    MyBatis의 주요 기능 활용:
+    - resultType: map-underscore-to-camel-case 설정으로 자동 매핑
+    - useGeneratedKeys: 자동 생성 키 반환
+    - 동적 SQL: <if>, <set> 태그 사용
+-->
+<mapper namespace="example.mapper.UserMapper">
+
+    <!--
+        모든 사용자 조회
+        resultType 사용 - underscore to camelCase 자동 변환
+    -->
+    <select id="findAll" resultType="User">
+        SELECT id, username, password, email, full_name, active, role, created_at, updated_at
+        FROM users
+        ORDER BY created_at DESC
+    </select>
+
+    <!--
+        ID로 사용자 조회
+        #{id}: PreparedStatement 파라미터 바인딩 (SQL Injection 방지)
+    -->
+    <select id="findById" resultType="User">
+        SELECT id, username, password, email, full_name, active, role, created_at, updated_at
+        FROM users
+        WHERE id = #{id}
+    </select>
+
+    <!--
+        사용자 생성
+        useGeneratedKeys: 자동 생성된 키를 객체에 설정
+        keyProperty: 생성된 키를 저장할 프로퍼티
+        keyColumn: 자동 생성되는 컬럼명
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO users (username, password, email, full_name, active, role, created_at, updated_at)
+        VALUES (#{username}, #{password}, #{email}, #{fullName}, #{active}, #{role},
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!--
+        사용자 정보 수정 (동적 SQL)
+        <set>: SET 절 생성, 자동으로 콤마 처리
+        <if>: 조건부 SQL 생성
+        test: 조건 표현식 (OGNL 사용)
+    -->
+    <update id="update">
+        UPDATE users
+        <set>
+            <!-- username이 null이 아니고 빈 문자열이 아닐 때만 업데이트 -->
+            <if test="username != null and username != ''">
+                username = #{username},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="fullName != null and fullName != ''">
+                full_name = #{fullName},
+            </if>
+            <if test="active != null">
+                active = #{active},
+            </if>
+            <if test="role != null and role != ''">
+                role = #{role},
+            </if>
+            <!-- 항상 업데이트 시간은 갱신 -->
+            updated_at = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
