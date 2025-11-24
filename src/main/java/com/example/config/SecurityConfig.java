@@ -79,6 +79,13 @@ public class SecurityConfig {
 				.headers((headers) -> headers
 						.frameOptions((frame) -> frame.sameOrigin()))
 				.httpBasic(Customizer.withDefaults())
+				/*
+				 * OAuth2 Resource Server JWT 설정
+				 * - 별도의 JwtAuthenticationFilter 구현 없이 Spring Security가 JWT 검증을 자동 처리
+				 * - BearerTokenAuthenticationFilter가 자동 등록되어 Authorization 헤더에서 Bearer 토큰 추출
+				 * - JwtDecoder Bean을 사용하여 토큰 서명 검증 및 만료 시간 확인
+				 * - 검증 성공 시 SecurityContext에 인증 정보 자동 저장
+				 */
 				.oauth2ResourceServer((jwt) -> jwt.jwt(Customizer.withDefaults()))
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.exceptionHandling((exceptions) -> exceptions
@@ -99,11 +106,22 @@ public class SecurityConfig {
 		return authenticationConfiguration.getAuthenticationManager();
 	}
 
+	/**
+	 * JWT 디코더 - 토큰 검증 담당
+	 * - RSA 공개키를 사용하여 JWT 서명 검증
+	 * - 토큰 만료 시간(exp), 발급 시간(iat) 등 클레임 자동 검증
+	 * - oauth2ResourceServer()와 연동되어 모든 요청의 Bearer 토큰 자동 검증
+	 */
 	@Bean
 	JwtDecoder jwtDecoder() {
 		return NimbusJwtDecoder.withPublicKey(this.key).build();
 	}
 
+	/**
+	 * JWT 인코더 - 토큰 생성 담당
+	 * - RSA 개인키를 사용하여 JWT 서명 생성
+	 * - JwtTokenProvider에서 로그인/회원가입 시 토큰 발급에 사용
+	 */
 	@Bean
 	JwtEncoder jwtEncoder() {
 		JWK jwk = new RSAKey.Builder(this.key).privateKey(this.priv).build();
