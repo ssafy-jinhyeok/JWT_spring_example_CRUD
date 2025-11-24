@@ -10,7 +10,7 @@
     - <foreach>: 컬렉션 반복 (IN 절 등)
     - <choose>, <when>, <otherwise>: switch-case 같은 조건문
 -->
-<mapper namespace="example.mapper.ProductMapper">
+<mapper namespace="com.example.mapper.ProductMapper">
 
     <select id="findAll" resultType="Product">
         SELECT id, name, description, price, stock_quantity, category, status,

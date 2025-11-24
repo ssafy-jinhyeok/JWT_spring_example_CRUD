@@ -81,12 +81,20 @@ src/main/resources/
 
 ### 1. 빌드
 ```bash
-./gradlew build
+# Windows
+.\mvnw.cmd clean install
+
+# Unix/Mac
+./mvnw clean install
 ```
 
 ### 2. 실행
 ```bash
-./gradlew bootRun
+# Windows
+.\mvnw.cmd spring-boot:run
+
+# Unix/Mac
+./mvnw spring-boot:run
 ```
 
 ### 3. H2 콘솔 접속

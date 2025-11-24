@@ -9,7 +9,7 @@
     - useGeneratedKeys: 자동 생성 키 반환
     - 동적 SQL: <if>, <set> 태그 사용
 -->
-<mapper namespace="example.mapper.UserMapper">
+<mapper namespace="com.example.mapper.UserMapper">
 
     <!--
         모든 사용자 조회

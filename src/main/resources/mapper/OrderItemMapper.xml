@@ -9,7 +9,7 @@
     - Association을 통한 상품 정보 조인
     - autoMapping: map-underscore-to-camel-case와 함께 자동 매핑
 -->
-<mapper namespace="example.mapper.OrderItemMapper">
+<mapper namespace="com.example.mapper.OrderItemMapper">
 
     <!--
         상품 정보를 포함한 주문 상세 항목 ResultMap
