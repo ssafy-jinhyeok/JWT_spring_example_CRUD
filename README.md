@@ -41,40 +41,52 @@
 ## 프로젝트 구조
 
 ```
-src/main/java/example/
+src/main/java/com/example/
+├── JwtLoginApplication.java           # 애플리케이션 진입점
 ├── config/
-│   └── MyBatisConfig.java          # MyBatis 설정
+│   ├── SecurityConfig.java            # Spring Security 설정
+│   ├── MyBatisConfig.java             # MyBatis 설정
+│   └── OpenApiConfig.java             # Swagger/OpenAPI 설정
 ├── controller/
-│   ├── UserController.java         # 사용자 REST API
-│   ├── ProductController.java      # 상품 REST API
-│   └── OrderController.java        # 주문 REST API
+│   ├── AuthController.java            # 인증 REST API
+│   ├── UserController.java            # 사용자 REST API
+│   ├── ProductController.java         # 상품 REST API
+│   └── OrderController.java           # 주문 REST API
 ├── domain/
-│   ├── User.java                   # 사용자 도메인
-│   ├── Product.java                # 상품 도메인
-│   ├── Order.java                  # 주문 도메인
-│   └── OrderItem.java              # 주문 상세 항목 도메인
+│   ├── User.java                      # 사용자 도메인
+│   ├── Product.java                   # 상품 도메인
+│   ├── Order.java                     # 주문 도메인
+│   └── OrderItem.java                 # 주문 상세 항목 도메인
 ├── dto/
-│   ├── ProductSearchCriteria.java  # 상품 검색 조건 DTO
-│   └── OrderSearchCriteria.java    # 주문 검색 조건 DTO
+│   ├── AuthResponse.java              # 인증 응답 DTO
+│   ├── LoginRequest.java              # 로그인 요청 DTO
+│   ├── SignupRequest.java             # 회원가입 요청 DTO
+│   ├── MessageResponse.java           # 메시지 응답 DTO
+│   ├── ProductSearchCriteria.java     # 상품 검색 조건 DTO
+│   └── OrderSearchCriteria.java       # 주문 검색 조건 DTO
 ├── mapper/
-│   ├── UserMapper.java             # 사용자 Mapper 인터페이스
-│   ├── ProductMapper.java          # 상품 Mapper 인터페이스
-│   ├── OrderMapper.java            # 주문 Mapper 인터페이스
-│   └── OrderItemMapper.java        # 주문 상세 항목 Mapper 인터페이스
+│   ├── UserMapper.java                # 사용자 Mapper 인터페이스
+│   ├── ProductMapper.java             # 상품 Mapper 인터페이스
+│   ├── OrderMapper.java               # 주문 Mapper 인터페이스
+│   └── OrderItemMapper.java           # 주문 상세 항목 Mapper 인터페이스
+├── security/
+│   ├── CustomUserDetailsService.java  # 사용자 인증 서비스
+│   └── JwtTokenProvider.java          # JWT 토큰 생성 유틸리티
 └── service/
-    ├── UserService.java            # 사용자 서비스
-    ├── ProductService.java         # 상품 서비스
-    └── OrderService.java           # 주문 서비스
+    ├── AuthService.java               # 인증 서비스
+    ├── UserService.java               # 사용자 서비스
+    ├── ProductService.java            # 상품 서비스
+    └── OrderService.java              # 주문 서비스
 
 src/main/resources/
 ├── mapper/
-│   ├── UserMapper.xml              # 사용자 Mapper XML
-│   ├── ProductMapper.xml           # 상품 Mapper XML (동적 SQL)
-│   ├── OrderMapper.xml             # 주문 Mapper XML (Association + Collection)
-│   └── OrderItemMapper.xml         # 주문 상세 항목 Mapper XML (배치 INSERT)
-├── schema.sql                      # 데이터베이스 스키마
-├── data.sql                        # 초기 데이터
-└── application.yml                 # 설정 파일
+│   ├── UserMapper.xml                 # 사용자 Mapper XML
+│   ├── ProductMapper.xml              # 상품 Mapper XML (동적 SQL)
+│   ├── OrderMapper.xml                # 주문 Mapper XML (Association + Collection)
+│   └── OrderItemMapper.xml            # 주문 상세 항목 Mapper XML (배치 INSERT)
+├── schema.sql                         # 데이터베이스 스키마
+├── data.sql                           # 초기 데이터
+└── application.properties             # 설정 파일
 ```
 
 ## 실행 방법
